@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="form.css">
+</head>
+    <body>
+        <div class="container">
+            <form action="" id="form">
+                <h1><em><i><b>EduConnect-Lie</b></i></em></h1>
+            
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="text" id="email" name="email" >
+                    <div class="error"></div>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password">
+                    <div class="error"></div>
+                </div>
+                <button type="submit" id="submit">Sign up
+               
+                </button><br>
+                <a href="Login.html">Login here</a>
+            </form>
+        </div>
+        <script type="module">
+             import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js";
+            import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        const firebaseConfig = {
+        apiKey: "AIzaSyCBi9wudYC4OkzJmc98JcUiQro-LFReLnU",
+        authDomain: "educonnect-lite-171aa.firebaseapp.com",
+        projectId: "educonnect-lite-171aa",
+        storageBucket: "educonnect-lite-171aa.firebasestorage.app",
+        messagingSenderId: "511793216219",
+        appId: "1:511793216219:web:a89c1644639ec4980feafe",
+        measurementId: "G-5JVEQLFDM3"
+        };
+
+        // Your web app's Firebase configuration
+        
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const submit=document.getElementById("submit");
+        submit.addEventListener('click',function(event){
+    
+        event.preventDefault();
+        const email=document.getElementById("email").value;
+        const password=document.getElementById("password").value;
+        createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            // Signed up 
+            const user = userCredential.user;
+            alert("Login in now..");
+            // ...
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            alert(errorMessage)
+            // ..
+        });
+
+        
+        })
+          
+</script>
+</body>
+</html>
