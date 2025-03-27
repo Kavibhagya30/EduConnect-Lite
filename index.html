@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma-2B Web Test</title>
+</head>
+<body>
+    <h2>Ask Gemma-2B:</h2>
+    <textarea id="prompt" rows="4" cols="50" placeholder="Enter your question..."></textarea>
+    <br><br>
+    <button onclick="generateResponse()">Generate</button>
+    <h3>Response:</h3>
+    <p id="response"></p>
+
+    <script>
+        async function generateResponse() {
+            let prompt = document.getElementById("prompt").value;
+            let responseElement = document.getElementById("response");
+
+            responseElement.innerHTML = "Generating..."; // Loading message
+
+            let res = await fetch("http://127.0.0.1:8000/generate/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: prompt })
+            });
+
+            let data = await res.json();
+            responseElement.innerHTML = data.response; // Show AI response
+        }
+    </script>
+</body>
+</html>
