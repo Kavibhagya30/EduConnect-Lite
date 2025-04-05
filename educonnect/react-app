@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { openDB } from "idb";
 
 // Firebase Config
 const firebaseConfig = {
@@ -18,7 +19,6 @@ initializeApp(firebaseConfig);
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
-// --- Login Component ---
 const Login = ({ onLogin }) => {
   const handleLogin = (e) => {
     e.preventDefault();
@@ -45,14 +45,13 @@ const Login = ({ onLogin }) => {
   );
 };
 
-// --- Dashboard Component ---
 const Dashboard = () => {
   const navigate = useNavigate();
   const items = [
     { title: "Chatbot", description: "Talk to our AI assistant", icon: "💬", route: "/chatbot" },
-    { title: "Google Docs", description: "Create and edit documents", icon: "📄" },
-    { title: "Google Drive", description: "Store and manage files", icon: "📁" },
-    { title: "Resources", description: "Access learning materials", icon: "📖" },
+    { title: "Google Docs", description: "Create and edit documents", icon: "📄", route: "/docs" },
+    { title: "Google Drive", description: "Store and manage files", icon: "📁", route: "/drive" },
+    { title: "Resources", description: "Access learning materials", icon: "📖", route: "/resources" },
   ];
 
   return (
@@ -68,7 +67,168 @@ const Dashboard = () => {
   );
 };
 
-// --- Chatbot Component ---
+const Resources = () => {
+  const [resources, setResources] = useState([]);
+
+  useEffect(() => {
+    const loadFiles = async () => {
+      const db = await openDB("resources-db", 1, {
+        upgrade(db) {
+          if (!db.objectStoreNames.contains("files")) {
+            db.createObjectStore("files", { keyPath: "name" });
+          }
+        },
+      });
+      const tx = db.transaction("files", "readonly");
+      const store = tx.objectStore("files");
+      const allFiles = await store.getAll();
+      setResources(allFiles);
+    };
+    loadFiles();
+  }, []);
+
+  const uploadFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const db = await openDB("resources-db", 1);
+      const tx = db.transaction("files", "readwrite");
+      const store = tx.objectStore("files");
+      await store.put({ name: file.name, content: reader.result });
+      const allFiles = await store.getAll();
+      setResources(allFiles);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const downloadFile = (resource) => {
+    const link = document.createElement("a");
+    link.href = resource.content;
+    link.download = resource.name;
+    link.click();
+  };
+
+  const deleteFile = async (name) => {
+    const db = await openDB("resources-db", 1);
+    const tx = db.transaction("files", "readwrite");
+    const store = tx.objectStore("files");
+    await store.delete(name);
+    const allFiles = await store.getAll();
+    setResources(allFiles);
+  };
+
+  return (
+    <div style={resourceStyles.container}>
+      <h2 style={resourceStyles.title}>Upload Resource</h2>
+      <div style={resourceStyles.uploadBox}>
+        <label style={resourceStyles.uploadLabel}>
+          Choose File
+          <input type="file" onChange={uploadFile} style={resourceStyles.uploadInput} />
+        </label>
+      </div>
+      <div style={resourceStyles.resourceList}>
+        <h3>Available Offline Resources</h3>
+        {resources.length === 0 ? (
+          <p style={resourceStyles.noFiles}>No files available.</p>
+        ) : (
+          resources.map((res) => (
+            <div key={res.name} style={resourceStyles.resourceItem}>
+              <span style={resourceStyles.fileName}>{res.name}</span>
+              <div>
+                <button style={resourceStyles.downloadBtn} onClick={() => downloadFile(res)}>
+                  Download
+                </button>
+                <button style={resourceStyles.deleteBtn} onClick={() => deleteFile(res.name)}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+const resourceStyles = {
+  container: {
+    padding: "40px 20px",
+    maxWidth: "700px",
+    margin: "0 auto",
+    fontFamily: "Arial, sans-serif",
+    textAlign: "center",
+    backgroundColor: "#fdfcfe",
+    borderRadius: "15px",
+    boxShadow: "0px 8px 20px rgba(0,0,0,0.1)",
+  },
+  title: {
+    fontSize: "28px",
+    marginBottom: "30px",
+    color: "#6b21a8",
+  },
+  uploadBox: {
+    marginBottom: "30px",
+  },
+  uploadLabel: {
+    padding: "12px 20px",
+    backgroundColor: "#8b5cf6",
+    color: "white",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    transition: "background 0.3s",
+  },
+  uploadInput: {
+    display: "none",
+  },
+  resourceList: {
+    textAlign: "left",
+  },
+  noFiles: {
+    fontStyle: "italic",
+    color: "#666",
+  },
+  resourceItem: {
+    background: "#f3f0fa",
+    borderRadius: "10px",
+    padding: "15px 20px",
+    marginBottom: "15px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
+  },
+  fileName: {
+    fontWeight: "bold",
+    fontSize: "16px",
+    color: "#333",
+    maxWidth: "60%",
+    overflowWrap: "break-word",
+  },
+  downloadBtn: {
+    backgroundColor: "#4ade80",
+    border: "none",
+    borderRadius: "5px",
+    color: "white",
+    padding: "8px 12px",
+    marginRight: "10px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    transition: "background 0.3s",
+  },
+  deleteBtn: {
+    backgroundColor: "#ef4444",
+    border: "none",
+    borderRadius: "5px",
+    color: "white",
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    transition: "background 0.3s",
+  },
+};
+
 const Chatbot = () => {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
@@ -112,7 +272,6 @@ const Chatbot = () => {
   );
 };
 
-// --- Main App ---
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -121,12 +280,12 @@ const App = () => {
       <Routes>
         <Route path="/" element={isLoggedIn ? <Dashboard /> : <Login onLogin={() => setIsLoggedIn(true)} />} />
         <Route path="/chatbot" element={<Chatbot />} />
+        <Route path="/resources" element={<Resources />} />
       </Routes>
     </Router>
   );
 };
 
-// --- Styles ---
 const styles = {
   loginContainer: {
     width: "400px",
