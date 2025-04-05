@@ -1,0 +1,177 @@
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { initializeApp } from "firebase/app";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyCBi9wudYC4OkzJmc98JcUiQro-LFReLnU",
+  authDomain: "educonnect-lite-171aa.firebaseapp.com",
+  projectId: "educonnect-lite-171aa",
+  storageBucket: "educonnect-lite-171aa.appspot.com",
+  messagingSenderId: "511793216219",
+  appId: "1:511793216219:web:a89c1644639ec4980feafe",
+  measurementId: "G-5JVEQLFDM3",
+};
+
+initializeApp(firebaseConfig);
+const auth = getAuth();
+const provider = new GoogleAuthProvider();
+
+// --- Login Component ---
+const Login = ({ onLogin }) => {
+  const handleLogin = (e) => {
+    e.preventDefault();
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        console.log("User signed in:", result.user);
+        onLogin();
+      })
+      .catch((error) => {
+        console.error("Login error:", error.message);
+        alert("Login failed: " + error.message);
+      });
+  };
+
+  return (
+    <div style={styles.loginContainer}>
+      <form>
+        <h1 style={{ color: "#792099" }}>EduConnect-Lite</h1>
+        <button style={styles.button} type="button" onClick={handleLogin}>
+          Login with Google
+        </button>
+      </form>
+    </div>
+  );
+};
+
+// --- Dashboard Component ---
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const items = [
+    { title: "Chatbot", description: "Talk to our AI assistant", icon: "💬", route: "/chatbot" },
+    { title: "Google Docs", description: "Create and edit documents", icon: "📄" },
+    { title: "Google Drive", description: "Store and manage files", icon: "📁" },
+    { title: "Resources", description: "Access learning materials", icon: "📖" },
+  ];
+
+  return (
+    <div style={styles.dashboard}>
+      {items.map((item, index) => (
+        <div key={index} style={styles.card} onClick={() => item.route && navigate(item.route)}>
+          <span style={styles.icon}>{item.icon}</span>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// --- Chatbot Component ---
+const Chatbot = () => {
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleGenerateResponse = async () => {
+    setLoading(true);
+    setResponse("Generating...");
+    try {
+      const res = await fetch("http://127.0.0.1:8000/generate/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      setResponse(data.response);
+    } catch (err) {
+      console.error("Error:", err);
+      setResponse("Error fetching response.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ textAlign: "center", padding: "20px" }}>
+      <h2>Chat with Gemma-2B</h2>
+      <textarea
+        rows="4"
+        cols="50"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder="Enter your question..."
+      />
+      <br />
+      <button onClick={handleGenerateResponse} disabled={loading}>
+        {loading ? "Loading..." : "Generate"}
+      </button>
+      <h3>Response:</h3>
+      <p>{response}</p>
+    </div>
+  );
+};
+
+// --- Main App ---
+const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={isLoggedIn ? <Dashboard /> : <Login onLogin={() => setIsLoggedIn(true)} />} />
+        <Route path="/chatbot" element={<Chatbot />} />
+      </Routes>
+    </Router>
+  );
+};
+
+// --- Styles ---
+const styles = {
+  loginContainer: {
+    width: "400px",
+    margin: "20vh auto",
+    backgroundColor: "whitesmoke",
+    borderRadius: "5px",
+    padding: "30px",
+    textAlign: "center",
+  },
+  button: {
+    backgroundColor: "#792099",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    padding: "10px",
+    fontSize: "20px",
+    width: "100%",
+    cursor: "pointer",
+  },
+  dashboard: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "20px",
+    padding: "20px",
+    maxWidth: "600px",
+    margin: "auto",
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+  },
+  card: {
+    background: "#f8f9fa",
+    padding: "20px",
+    borderRadius: "10px",
+    textAlign: "center",
+    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+    transition: "transform 0.2s",
+    cursor: "pointer",
+  },
+  icon: {
+    fontSize: "40px",
+    display: "block",
+    marginBottom: "10px",
+  },
+};
+
+export default App;
