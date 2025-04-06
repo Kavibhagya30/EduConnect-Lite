@@ -230,44 +230,36 @@ const resourceStyles = {
 };
 
 const Chatbot = () => {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
+ const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
 
-  const handleGenerateResponse = async () => {
-    setLoading(true);
-    setResponse("Generating...");
-    try {
-      const res = await fetch("http://127.0.0.1:8000/generate/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
-      setResponse(data.response);
-    } catch (err) {
-      console.error("Error:", err);
-      setResponse("Error fetching response.");
-    }
-    setLoading(false);
+  const handleGenerate = async () => {
+    const res = await fetch("http://localhost:8000/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ input: inputText })
+    });
+
+    const data = await res.json();
+    setOutputText(data.output);
   };
 
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h2>Chat with Gemma-2B</h2>
+    <div className="App">
+      <h1>Flan-T5 Text Generator</h1>
       <textarea
         rows="4"
         cols="50"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter your question..."
+        value={inputText}
+        onChange={(e) => setInputText(e.target.value)}
+        placeholder="Type your prompt here"
       />
       <br />
-      <button onClick={handleGenerateResponse} disabled={loading}>
-        {loading ? "Loading..." : "Generate"}
-      </button>
-      <h3>Response:</h3>
-      <p>{response}</p>
+      <button onClick={handleGenerate}>Generate</button>
+      <h3>Output:</h3>
+      <p>{outputText}</p>
     </div>
   );
 };
