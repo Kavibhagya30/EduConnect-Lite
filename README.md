@@ -10,7 +10,7 @@ trained teachers. This educational gap perpetuates cycles of poverty and inequal
 opportunities for individuals and hindering community development.
  
 Our Solution:
-Our React-based educational platform, aligned with UN SDG 4: Quality Education, ensures seamless learning even in lowconnectivity areas. 
+Our React-based educational platform, aligned with UN SDG 4: Quality Education, ensures seamless learning even in low connectivity areas. 
 o Offline Learning: Pre-download study materials to continue learning anytime. 
 o Organized Content: Access and store study resources via Google Drive and Google Docs, without cloud dependency. 
 o AI Assistance: Our Flan T5(Base) chatbot supports doubt-solving, speech-to-text conversion using Vosk,Text-to-speech 
