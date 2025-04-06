@@ -16,7 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model_path = "C:/Users/KUMAR/Downloads/flan-t5-dolly-final-20250327T042231Z-001/flan-t5-dolly-final"
+model_path = "flan-t5-dolly-final-20250327T042231Z-001/flan-t5-dolly-final"
+
 
 model = T5ForConditionalGeneration.from_pretrained(model_path)
 tokenizer = T5Tokenizer.from_pretrained(model_path)

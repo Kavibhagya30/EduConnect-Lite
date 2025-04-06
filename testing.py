@@ -2,7 +2,7 @@ import torch
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 # ✅ Load Model & Tokenizer from Local Directory
-model_path = r"C:\Users\KUMAR\Downloads\flan-t5-dolly-final-20250327T042231Z-001\flan-t5-dolly-final"  # Change this to your actual path
+model_path = "flan-t5-dolly-final-20250327T042231Z-001/flan-t5-dolly-final"   # Change this to your actual path
 tokenizer = T5Tokenizer.from_pretrained(model_path)
 model = T5ForConditionalGeneration.from_pretrained(model_path)
 
