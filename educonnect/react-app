@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
 import { openDB } from "idb";
 
 // Firebase Config
@@ -48,16 +57,40 @@ const Login = ({ onLogin }) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const items = [
-    { title: "Chatbot", description: "Talk to our AI assistant", icon: "💬", route: "/chatbot" },
-    { title: "Google Docs", description: "Create and edit documents", icon: "📄", route: "/docs" },
-    { title: "Google Drive", description: "Store and manage files", icon: "📁", route: "/drive" },
-    { title: "Resources", description: "Access learning materials", icon: "📖", route: "/resources" },
+    {
+      title: "Chatbot",
+      description: "Talk to our AI assistant",
+      icon: "💬",
+      route: "/chatbot",
+    },
+    {
+      title: "Google Docs",
+      description: "Create and edit documents",
+      icon: "📄",
+      route: "/docs",
+    },
+    {
+      title: "Google Drive",
+      description: "Store and manage files",
+      icon: "📁",
+      route: "/drive",
+    },
+    {
+      title: "Resources",
+      description: "Access learning materials",
+      icon: "📖",
+      route: "/resources",
+    },
   ];
 
   return (
     <div style={styles.dashboard}>
       {items.map((item, index) => (
-        <div key={index} style={styles.card} onClick={() => item.route && navigate(item.route)}>
+        <div
+          key={index}
+          style={styles.card}
+          onClick={() => item.route && navigate(item.route)}
+        >
           <span style={styles.icon}>{item.icon}</span>
           <h3>{item.title}</h3>
           <p>{item.description}</p>
@@ -65,6 +98,24 @@ const Dashboard = () => {
       ))}
     </div>
   );
+};
+
+const Docs = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    window.open("https://docs.google.com", "_blank");
+    navigate("/");
+  }, [navigate]);
+  return null;
+};
+
+const Drive = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    window.open("https://drive.google.com", "_blank");
+    navigate("/");
+  }, [navigate]);
+  return null;
 };
 
 const Resources = () => {
@@ -151,6 +202,104 @@ const Resources = () => {
   );
 };
 
+const Chatbot = () => {
+  const [inputText, setInputText] = useState("");
+  const [outputText, setOutputText] = useState("");
+
+  const handleGenerate = async () => {
+    const res = await fetch("http://localhost:8000/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ input: inputText }),
+    });
+
+    const data = await res.json();
+    setOutputText(data.output);
+  };
+
+  return (
+    <div className="App">
+      <h1>Flan-T5 Text Generator</h1>
+      <textarea
+        rows="4"
+        cols="50"
+        value={inputText}
+        onChange={(e) => setInputText(e.target.value)}
+        placeholder="Type your prompt here"
+      />
+      <br />
+      <button onClick={handleGenerate}>Generate</button>
+      <h3>Output:</h3>
+      <p>{outputText}</p>
+    </div>
+  );
+};
+
+const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={isLoggedIn ? <Dashboard /> : <Login onLogin={() => setIsLoggedIn(true)} />} />
+        <Route path="/chatbot" element={<Chatbot />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/docs" element={<Docs />} />
+        <Route path="/drive" element={<Drive />} />
+      </Routes>
+    </Router>
+  );
+};
+
+const styles = {
+  loginContainer: {
+    width: "400px",
+    margin: "20vh auto",
+    backgroundColor: "whitesmoke",
+    borderRadius: "5px",
+    padding: "30px",
+    textAlign: "center",
+  },
+  button: {
+    backgroundColor: "#792099",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    padding: "10px",
+    fontSize: "20px",
+    width: "100%",
+    cursor: "pointer",
+  },
+  dashboard: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "20px",
+    padding: "20px",
+    maxWidth: "600px",
+    margin: "auto",
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+  },
+  card: {
+    background: "#f8f9fa",
+    padding: "20px",
+    borderRadius: "10px",
+    textAlign: "center",
+    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+    transition: "transform 0.2s",
+    cursor: "pointer",
+  },
+  icon: {
+    fontSize: "40px",
+    display: "block",
+    marginBottom: "10px",
+  },
+};
+
 const resourceStyles = {
   container: {
     padding: "40px 20px",
@@ -226,102 +375,6 @@ const resourceStyles = {
     cursor: "pointer",
     fontWeight: "bold",
     transition: "background 0.3s",
-  },
-};
-
-const Chatbot = () => {
- const [inputText, setInputText] = useState("");
-  const [outputText, setOutputText] = useState("");
-
-  const handleGenerate = async () => {
-    const res = await fetch("http://localhost:8000/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ input: inputText })
-    });
-
-    const data = await res.json();
-    setOutputText(data.output);
-  };
-
-  return (
-    <div className="App">
-      <h1>Flan-T5 Text Generator</h1>
-      <textarea
-        rows="4"
-        cols="50"
-        value={inputText}
-        onChange={(e) => setInputText(e.target.value)}
-        placeholder="Type your prompt here"
-      />
-      <br />
-      <button onClick={handleGenerate}>Generate</button>
-      <h3>Output:</h3>
-      <p>{outputText}</p>
-    </div>
-  );
-};
-
-const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={isLoggedIn ? <Dashboard /> : <Login onLogin={() => setIsLoggedIn(true)} />} />
-        <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/resources" element={<Resources />} />
-      </Routes>
-    </Router>
-  );
-};
-
-const styles = {
-  loginContainer: {
-    width: "400px",
-    margin: "20vh auto",
-    backgroundColor: "whitesmoke",
-    borderRadius: "5px",
-    padding: "30px",
-    textAlign: "center",
-  },
-  button: {
-    backgroundColor: "#792099",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    padding: "10px",
-    fontSize: "20px",
-    width: "100%",
-    cursor: "pointer",
-  },
-  dashboard: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "20px",
-    padding: "20px",
-    maxWidth: "600px",
-    margin: "auto",
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-  },
-  card: {
-    background: "#f8f9fa",
-    padding: "20px",
-    borderRadius: "10px",
-    textAlign: "center",
-    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-    transition: "transform 0.2s",
-    cursor: "pointer",
-  },
-  icon: {
-    fontSize: "40px",
-    display: "block",
-    marginBottom: "10px",
   },
 };
 
